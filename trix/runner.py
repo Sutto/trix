@@ -1,4 +1,2 @@
-import sys
-
-def run():
-  print "COMMAND:", repr(sys.argv)
+def main(argv):
+  print "COMMAND:", repr(argv)
