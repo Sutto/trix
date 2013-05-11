@@ -85,57 +85,29 @@ class Row(object):
     return adjusted_bit_mask
 
 
-class Board:
+class Board(object):
+
+  __slots__ = ['width', 'rows', 'cleared']
 
   def __init__(self, width):
-    self.width = width
-    self.rows = []
-    self.rowsCleared = 0
+    self.width   = width
+    self.rows    = []
+    self.cleared = 0
 
-  def possibleRightOffsetsFor(self, piece):
-    return range(0, self.width - piece.width)
+  def render(self): pass
 
-  def boardByAdding(self, piece, rightOffset):
-    # We need to find the starting offset from the top:
-    topOffset = -1
-    # We move the piece down until we can't place. The alternative
-    # is to start at the bottom and move upwards.
-    while self._canPlaceAllPieces(piece, rightOffset, topOffset):
-      topOffset += 1
-    self._placeAllPieces(piece, rightOffset, topOffset)
-    self.clearFullRows()
+  def height(self): pass
 
-  def clearFullRows(self):
-    newRows = [row for row in self.rows if not row.isFull()]
-    removed = len(self.rows) - len(newRows)
-    self.rowsCleared += removed
-    self.rows = newRows
+  def each_offset_for(self, piece): pass
 
-  def _placeAllPieces(self, piece, rightOffset, topOffset):
-    height = piece.height
-    rowsToAdd =  height - topOffset - 1
-    for i in range(0, rowsToAdd):
-      newRow = Row(self.width)
-      self.rows.prepend(newRow)
-    # Now, place each row.
-    for i in range(0, height): self.rows[i].place(piece, i, rightOffset)
+  def can_place(self, piece, left_offset): pass
 
-  def _canPlaceAllPieces(self, piece, rightOffset, topOffset):
-    # We need to calculate each row from 0 to the height - 1
-    height = piece.height
-    for rowsFromBottom in range(0, height):
-      # we start at the bottom and go upward.
-      pieceRowIndex = height - rowsFromBottom - 1
-      rowIndex      = topOffset - pieceRowIndex
-      if not self._calculateBitMasks(rowIndex, piece, pieceRowIndex, rightOffset):
-        return False
-    return True
+  def place(self, piece, left_offset): pass
 
-  def _canPlaceAt(self, index, piece, row, rightOffset):
-    return index < 0 or rows[index].canPlace(piece, row, rightOffset)
+  def _clear_full_rows(self): pass
 
 
-class Environment:
+class Environment(object):
 
   def __init__(self, configuration):
     self.configuration = configuration

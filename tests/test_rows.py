@@ -55,7 +55,6 @@ class TestRows(unittest.TestCase):
     self.assertFalse(row.can_place(piece_b, 2, 1))
     self.assertFalse(row.can_place(piece_b, 2, 2))
 
-
   def test_item_placement_status(self):
     piece_b, piece_c, piece_d = self.piece_b, self.piece_c, self.piece_d
     row = Row(11)
@@ -98,6 +97,17 @@ class TestRows(unittest.TestCase):
     row.place(piece_d, 3, 6)
     self.assertEqual([piece_c, piece_c, piece_c, piece_c, piece_b, piece_b, piece_d, piece_c, piece_c, piece_c, piece_c], row.tiles)
 
-  def test_rendering_a_row(self): pass
+  def test_rendering_a_row(self):
+    piece_b, piece_c, piece_d = self.piece_b, self.piece_c, self.piece_d
+    row = Row(11)
+    self.assertEqual('           ', row.render())
+    row.place(piece_c, 0, 0)
+    self.assertEqual('3333       ', row.render())
+    row.place(piece_c, 0, 7)
+    self.assertEqual('3333   3333', row.render())
+    row.place(piece_b, 2, 4)
+    self.assertEqual('333322 3333', row.render())
+    row.place(piece_d, 3, 6)
+    self.assertEqual('33332243333', row.render())
 
 if __name__ == '__main__': unittest.main()
