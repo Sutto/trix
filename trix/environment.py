@@ -4,7 +4,7 @@ class Piece:
     self.shape    = shape
     self.width    = max(map(len, shape))
     self.height   = len(shape)
-    self.bitMasks = self._calculateBitMasks(shape)
+    self.bitMasks = self._calculateBitMasks()
     self.bitMask  = reduce(lambda x, y: (x << self.width) + y, self.bitMasks, 0)
 
   def _calculateBitMasks(self):
@@ -28,7 +28,8 @@ class Row:
     at the distance given from the right edge"""
     adjusted = piece.bitMasks[number] << distanceFromRight
     current = self.content
-    return False if adjusted > self.maximum
+    if adjusted > self.maximum:
+      return False
     # We check that setting the value does not overlap.
     return (adjusted ^ content) == (adjusted | content)
 
@@ -59,7 +60,7 @@ class Board:
     while self._canPlaceAllPieces(piece, rightOffset, topOffset):
       topOffset += 1
     self._placeAllPieces(piece, rightOffset, topOffset)
-  self.clearFullRows()
+    self.clearFullRows()
 
   def clearFullRows(self):
     newRows = [row for row in self.rows if not row.isFull()]
@@ -83,7 +84,8 @@ class Board:
       # we start at the bottom and go upward.
       pieceRowIndex = height - rowsFromBottom - 1
       rowIndex      = topOffset - pieceRowIndex
-      return False if not self._calculateBitMasks(rowIndex, piece, pieceRowIndex, rightOffset)
+      if not self._calculateBitMasks(rowIndex, piece, pieceRowIndex, rightOffset):
+        return False
     return True
 
   def _canPlaceAt(self, index, piece, row, rightOffset):

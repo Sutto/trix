@@ -12,4 +12,8 @@ def main(argv):
     parsed_arguments = parser.parse_args(argv[1:])
     configuration = Configuration()
     configuration.merge(parsed_arguments)
-    print repr(configuration)
+    print(repr(configuration))
+
+if __name__ == '__main__':
+  import sys
+  main(sys.argv)
