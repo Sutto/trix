@@ -16,6 +16,14 @@ class TestBoard(unittest.TestCase):
 
   # def test_getting_the_height(self): pass
 
+  def test_rendering_boards(self):
+    board, piece = self.board, self.piece_c
+    self.assertEqual("+-----------+\n\n+-----------+", board.render())
+    board.place(piece, 0)
+    self.assertEqual("+-----------+\n|3333       |\n+-----------+", board.render())
+    board.place(piece, 1)
+    self.assertEqual("+-----------+\n| 3333      |\n|3333       |\n+-----------+", board.render())
+
   def test_clearing_rows_on_placement(self):
     board, piece_a, piece_c = self.board, self.piece_a, self.piece_c
     self.assertEqual(0, board.height())
@@ -68,12 +76,6 @@ class TestBoard(unittest.TestCase):
       board.place(rotated, 8 + i)
     self.assertEqual(3, board.height())
     self.assertEqual(3, board.cleared)
-
-  # def test_settings_the_height(self): pass
-
-  # def test_rendering_boards(self): pass
-
-  # def test_adding_items(self): pass
 
   def test_placing_on_full_below(self):
     board, piece_a, piece_c = self.board, self.piece_a, self.piece_c

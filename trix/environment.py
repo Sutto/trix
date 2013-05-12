@@ -119,7 +119,6 @@ class Board(object):
     self._clear_full_rows()
     self._update_stats()
 
-
   def _prepend_empty_row(self):
     self.rows.insert(0, Row(self.width))
 
@@ -132,7 +131,6 @@ class Board(object):
       else:
         break
     return last_row
-
 
   def _can_place_piece_row_in_board_row(self, row_index, piece, piece_index, left_offset):
     if row_index < 0: return True
@@ -148,8 +146,6 @@ class Board(object):
       if not self._can_place_piece_row_in_board_row(relative_row, piece, piece_index, left_offset):
         return False
     return True
-
-
 
   def _clear_full_rows(self):
     original_size = self.height()
