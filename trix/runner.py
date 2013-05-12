@@ -1,5 +1,6 @@
 import argparse
-from trix.config import defaults, Configuration
+from .config import defaults, Configuration
+from .environment import Environment
 
 parser = argparse.ArgumentParser(description="Trix configuration information")
 parser.add_argument('-c', '--config', dest='config_file', help='A configuration file to read details from', nargs='?')
@@ -12,7 +13,9 @@ def main(argv):
     parsed_arguments = parser.parse_args(argv[1:])
     configuration = Configuration()
     configuration.merge(parsed_arguments)
-    print(repr(configuration))
+    # Now, build the environment.
+    environment = Environment(configuration)
+    agent       = Agent(environment)
 
 if __name__ == '__main__':
   import sys

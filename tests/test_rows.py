@@ -32,10 +32,10 @@ class TestRows(unittest.TestCase):
     piece_a, piece_b = self.piece_a, self.piece_b
 
     row = Row(11)
-    for i in range(0, 8):
+    for i in range(9):
       self.assertTrue(row.can_place(piece_a, 0, i))
       self.assertTrue(row.can_place(piece_a, 1, i))
-    for i in range(8, 11):
+    for i in range(9, 12):
       self.assertFalse(row.can_place(piece_a, 0, i))
       self.assertFalse(row.can_place(piece_a, 1, i))
 

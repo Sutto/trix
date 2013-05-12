@@ -1,15 +1,31 @@
-
-class Action: pass
+class Action(object):
+  pass
 
 class AddToBuffer(Action):
 
   def __init__(self, piece):
     self.piece = piece
 
+  def apply(self, environment):
+    environment.add_to_buffer(self.piece)
+
 class PlacePiece(Action):
 
-  def __init__(self, piece, rightOffset):
-    self.piece = piece
-    self.rightOffset = rightOffset
+  def __init__(self, piece, left_offset):
+    self.piece       = piece
+    self.left_offset = left_offset
 
-class PlaceFromBuffer(PlacePiece): pass
+  def apply(self):
+    environment.place_piece_at(self.piece, self.left_offset)
+
+class PlaceFromBuffer(Action):
+
+  def __init__(self, piece, new_piece, left_offset):
+    self.piece = piece
+    self.new_piece = new_piece
+    self.left_offset = left_offset
+
+  def apply(self, environment):
+    environment.remove_from_buffer(self.piece)
+    environment.add_to_buffer(self.piece)
+    environment.place_piece_at(self.piece, self.left_offset)
