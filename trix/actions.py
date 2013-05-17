@@ -1,5 +1,11 @@
 class Action(object):
-  pass
+
+  def apply(self, environment):
+    raise NotImplementedError("you must implement apply for each action")
+
+class DoNothing(Action):
+
+  def apply(self, environment): pass
 
 class AddToBuffer(Action):
 

@@ -163,10 +163,20 @@ class Board(object):
 
 class Environment(object):
 
+  __slots__ = ['configuration', 'buffer', 'board', 'history']
+
   def __init__(self, configuration):
     self.configuration = configuration
     self.buffer        = []
+    self.history       = []
     self.board         = Board(configuration.width)
+
+  def possible_left_offsets_for(self, piece):
+    return range(self.board.width - piece.width + 1)
+
+  def perceive(self):
+    # Returns the next perception possible.
+    return None
 
   def remove_from_buffer(self, piece):
     self.buffer.append(piece)
@@ -178,4 +188,5 @@ class Environment(object):
     self.board.place(piece, left_offset)
 
   def update(self, action):
+    self.history.append(action)
     action.apply(self)

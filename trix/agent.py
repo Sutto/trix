@@ -1,3 +1,6 @@
+import .actions
+import random
+
 class Agent(object):
 
   def __init__(self, environment):
@@ -13,7 +16,14 @@ class Agent(object):
       self.process_choice(action, percept)
       self.environment.update(action)
       self.check_performance(action, percept)
+    # TODO: we need to record the environment output.
 
-  def choose_action(self, percept): pass
+  def choose_action(self, percept): raise NotImplementedError("You must implement choose_action in your agent")
 
-PRIMARY_AGENT = Agent
+# Chooses a random pace to put the given piece.
+class RandomAgent(Agent):
+
+  def choose_action(self, percept):
+    piece            = percept.piece
+    possible_offsets = self.environment.possible_left_offsets_for(piece)
+    return actions.PlacePiece(piece, random.choice(possible_offsets))

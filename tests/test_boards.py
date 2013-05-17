@@ -14,8 +14,6 @@ class TestBoard(unittest.TestCase):
     self.assertEqual(10, Board(10).width)
     self.assertEqual(5, Board(5).width)
 
-  # def test_getting_the_height(self): pass
-
   def test_rendering_boards(self):
     board, piece = self.board, self.piece_c
     self.assertEqual("+-----------+\n\n+-----------+", board.render())
