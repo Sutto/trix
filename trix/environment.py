@@ -1,3 +1,5 @@
+from .percept import Percept
+
 class Piece(object):
 
   __slots__ = ['name', 'shape', 'width', 'height', 'bit_masks']
@@ -182,20 +184,28 @@ class Board(object):
 
 class Environment(object):
 
-  __slots__ = ['configuration', 'buffer', 'board', 'history']
+  __slots__ = ['configuration', 'buffer', 'board', 'history', 'items']
 
-  def __init__(self, configuration):
+  def __init__(self, configuration, items):
     self.configuration = configuration
     self.buffer        = []
     self.history       = []
     self.board         = Board(configuration.width)
 
+  def copy(self):
+    instance               = object.__new__(Environment)
+    instance.configuration = self.configuration
+    instance.buffer        = list(self.buffer)
+    instance.history       = list(self.history)
+    instance.board         = self.board.copy()
+    instance.items         = list(self.items)
+    return instance
+
   def possible_left_offsets_for(self, piece):
     return range(self.board.width - piece.width + 1)
 
   def perceive(self):
-    # Returns the next perception possible.
-    return None
+    return Percept(self.items.pop(), self.items)
 
   def remove_from_buffer(self, piece):
     self.buffer.append(piece)
@@ -205,6 +215,12 @@ class Environment(object):
 
   def place_piece_at(self, piece, left_offset):
     self.board.place(piece, left_offset)
+
+  def fork(self, action):
+    "Returns a copy of the environment with the given action applied."
+    environment = self.copy()
+    environment.update(action)
+    return environment
 
   def update(self, action):
     self.history.append(action)
