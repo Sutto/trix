@@ -1,3 +1,8 @@
+def render_piece_and_offset(piece, offset):
+  rotation = piece.rotation
+  if rotation > 0: rotation = (4 - rotation)
+  return "%s %d %d" % (piece.name, rotation, offset)
+
 class Action(object):
 
   def apply(self, environment):
@@ -26,8 +31,7 @@ class PlacePiece(Action):
   def apply(self, environment):
     environment.place_piece_at(self.piece, self.left_offset)
 
-  def render(self):
-    return "%s %d %d" % (self.piece.name, 0, self.left_offset)
+  def render(self): return render_piece_and_offset(self.piece, self.left_offset)
 
 class PlaceFromBuffer(Action):
 
@@ -41,5 +45,4 @@ class PlaceFromBuffer(Action):
     environment.add_to_buffer(self.new_piece)
     environment.place_piece_at(self.piece, self.left_offset)
 
-  def render(self):
-    return "%s %d %d" % (self.piece.name, 0, self.left_offset)
+  def render(self): return render_piece_and_offset(self.piece, self.left_offset)

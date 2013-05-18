@@ -33,9 +33,10 @@ class Agent(object):
 class RandomAgent(Agent):
 
   def choose_action(self, percept):
-    piece            = percept.piece
-    possible_offsets = self.environment.possible_left_offsets_for(piece)
-    return PlacePiece(piece, random.choice(possible_offsets))
+    piece    = percept.piece
+    rotation = random.choice(list(piece.rotations()))
+    possible_offsets = self.environment.possible_left_offsets_for(rotation)
+    return PlacePiece(rotation, random.choice(possible_offsets))
 
 Agents = {
   'default': RandomAgent,

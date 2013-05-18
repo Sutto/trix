@@ -2,13 +2,14 @@ from .percept import Percept
 
 class Piece(object):
 
-  __slots__ = ['name', 'shape', 'width', 'height', 'bit_masks']
+  __slots__ = ['name', 'shape', 'width', 'height', 'bit_masks', 'rotation']
 
-  def __init__(self, name, shape):
+  def __init__(self, name, shape, rotation=0):
     self.name     = name
     self.shape    = shape
     self.width    = max(map(len, shape))
     self.height   = len(shape)
+    self.rotation = rotation
     self._calculate_bit_masks()
 
   def rotations(self):
@@ -25,7 +26,7 @@ class Piece(object):
         new_x = h - y - 1
         new_y = x
         new_space[new_y][new_x] = existing_shape[y][x]
-    return Piece(self.name, tuple(map(tuple, new_space)))
+    return Piece(self.name, tuple(map(tuple, new_space)), rotation=(self.rotation + 1))
 
   def __eq__(self, other):
     return isinstance(other, Piece) and other.shape == self.shape

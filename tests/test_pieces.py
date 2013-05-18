@@ -45,13 +45,17 @@ class TestPieces(unittest.TestCase):
 
   def test_rotating_piece(self):
     piece_a = Piece('a', ((1, 0, 0), (1, 1, 1)))
+    self.assertEqual(0, piece_a.rotation)
     rotated = piece_a.rotate()
     self.assertEqual('a', rotated.name)
+    self.assertEqual(1, rotated.rotation)
     self.assertEqual(((1, 1), (1, 0), (1, 0)), rotated.shape)
     self.assertEqual(((1, 0), (1, 1), (1, 0)), Piece('b', ((0, 1, 0), (1, 1, 1))).rotate().shape)
     self.assertEqual(((1,), (1,), (1,), (1,)), Piece('b', ((1, 1, 1, 1),)).rotate().shape)
     self.assertEqual(((1, 1, 1, 1),), Piece('b', ((1,), (1,), (1,), (1,))).rotate().shape)
     self.assertEqual(((1, 1), (1, 1)), Piece('b', ((1, 1), (1, 1))).rotate().shape)
+    self.assertEqual(2, rotated.rotate().rotation)
+    self.assertEqual(3, rotated.rotate().rotate().rotation)
 
   def test_rotations(self):
     piece_a = Piece('a', ((1, 1), (1, 1)))
