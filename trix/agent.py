@@ -36,7 +36,7 @@ class RandomAgent(Agent):
     piece    = percept.piece
     rotation = random.choice(list(piece.rotations()))
     possible_offsets = self.environment.possible_left_offsets_for(rotation)
-    return PlacePiece(rotation, random.choice(possible_offsets))
+    return PlaceNextPiece(rotation, random.choice(possible_offsets))
 
 Agents = {
   'default': RandomAgent,
