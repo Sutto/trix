@@ -21,7 +21,7 @@ class PlacePiece(Action):
     self.piece       = piece
     self.left_offset = left_offset
 
-  def apply(self):
+  def apply(self, environment):
     environment.place_piece_at(self.piece, self.left_offset)
 
 class PlaceFromBuffer(Action):
@@ -33,5 +33,5 @@ class PlaceFromBuffer(Action):
 
   def apply(self, environment):
     environment.remove_from_buffer(self.piece)
-    environment.add_to_buffer(self.piece)
+    environment.add_to_buffer(self.new_piece)
     environment.place_piece_at(self.piece, self.left_offset)

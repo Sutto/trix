@@ -184,12 +184,15 @@ class Board(object):
 
 class Environment(object):
 
+  class FullBuffer(Exception): pass
+
   __slots__ = ['configuration', 'buffer', 'board', 'history', 'items']
 
   def __init__(self, configuration, items):
     self.configuration = configuration
     self.buffer        = []
     self.history       = []
+    self.items         = items
     self.board         = Board(configuration.width)
 
   def copy(self):
@@ -205,12 +208,19 @@ class Environment(object):
     return range(self.board.width - piece.width + 1)
 
   def perceive(self):
-    return Percept(self.items.pop(), self.items)
+    # When we have no items, we perceive nothing.
+    if not self.items: return None
+    # Otherwise, we perceive the front of the item list.
+    return Percept(self.items.pop(0), self.items)
 
-  def remove_from_buffer(self, piece):
-    self.buffer.append(piece)
+  def buffer_is_full(self):
+    return len(self.buffer) == self.configuration.buffer
 
   def add_to_buffer(self, piece):
+    if self.buffer_is_full(): raise self.FullBuffer("The current environments buffer is already full.")
+    self.buffer.append(piece)
+
+  def remove_from_buffer(self, piece):
     self.buffer.remove(piece)
 
   def place_piece_at(self, piece, left_offset):
