@@ -13,4 +13,4 @@ class Configuration:
       information = " ".join(["%s=%r" % (k, data[k]) for k in data])
       return "<trix.config.Configuration %s>" % information
 
-defaults = Configuration(width=11, buffer=1, input_file=None, output_file=None)
+defaults = Configuration(width=11, buffer=1, input_file=None, output_file=None, agent='default')
