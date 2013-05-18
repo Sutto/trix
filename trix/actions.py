@@ -20,6 +20,7 @@ class AddToBuffer(Action):
     self.piece = piece
 
   def apply(self, environment):
+    environment.consume()
     environment.add_to_buffer(self.piece)
 
 class PlacePiece(Action):
@@ -31,18 +32,18 @@ class PlacePiece(Action):
   def apply(self, environment):
     environment.place_piece_at(self.piece, self.left_offset)
 
-  def render(self): return render_piece_and_offset(self.piece, self.left_offset)
+  def render(self):
+    return render_piece_and_offset(self.piece, self.left_offset)
 
-class PlaceFromBuffer(Action):
-
-  def __init__(self, piece, new_piece, left_offset):
-    self.piece = piece
-    self.new_piece = new_piece
-    self.left_offset = left_offset
+class PlaceNextPiece(PlacePiece):
 
   def apply(self, environment):
-    environment.remove_from_buffer(self.piece)
-    environment.add_to_buffer(self.new_piece)
-    environment.place_piece_at(self.piece, self.left_offset)
+    super().apply(environment)
+    environment.consume()
 
-  def render(self): return render_piece_and_offset(self.piece, self.left_offset)
+
+class PlaceFromBuffer(PlacePiece):
+
+  def apply(self, environment):
+    super().apply(environment)
+    environment.remove_from_buffer(self.piece)

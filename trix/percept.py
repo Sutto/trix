@@ -1,5 +1,7 @@
 class Percept(object):
 
-  def __init__(self, piece, upcoming_pieces):
-    self.piece           = piece
-    self.upcoming_pieces = upcoming_pieces
+  __slots__ = ['piece', 'pieces']
+
+  def __init__(self, pieces):
+    self.pieces          = pieces
+    self.piece           = pieces[0]

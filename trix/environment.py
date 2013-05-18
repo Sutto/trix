@@ -212,13 +212,17 @@ class Environment(object):
     # When we have no items, we perceive nothing.
     if not self.items: return None
     # Otherwise, we perceive the front of the item list.
-    return Percept(self.items.pop(0), self.items)
+    return Percept(self.items)
+
+  def consume(self):
+    if self.items: self.items.pop(0)
 
   def buffer_is_full(self):
     return len(self.buffer) == self.configuration.buffer
 
   def add_to_buffer(self, piece):
-    if self.buffer_is_full(): raise self.FullBuffer("The current environments buffer is already full.")
+    if self.buffer_is_full():
+      raise self.FullBuffer("The current environments buffer is already full.")
     self.buffer.append(piece)
 
   def remove_from_buffer(self, piece):
