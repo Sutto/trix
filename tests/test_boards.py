@@ -102,5 +102,24 @@ class TestBoard(unittest.TestCase):
     board.place(piece, 0)
     self.assertEqual(6, board.height())
 
+  def test_copying_a_board(self):
+    board = self.board
+    piece = self.piece_c
+    board.place(piece, 0)
+    original = board.render()
+    copy = board.copy()
+    self.assertEqual(original, copy.render())
+    self.assertEqual(original, board.render())
+    self.assertEqual(board.height(), copy.height())
+    self.assertEqual(board.maximum_height, copy.maximum_height)
+    self.assertEqual(board.width, copy.width)
+    board.place(piece, 4)
+    board.place(piece, 0)
+    self.assertEqual(original, copy.render())
+    self.assertNotEqual(original, board.render())
+    self.assertNotEqual(board.height(), copy.height())
+    self.assertNotEqual(board.maximum_height, copy.maximum_height)
+    self.assertEqual(board.width, copy.width)
+
 
 if __name__ == '__main__': unittest.main()

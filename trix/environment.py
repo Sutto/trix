@@ -39,6 +39,9 @@ class Piece(object):
       bit_masks.append(bit_mask)
     self.bit_masks = bit_masks
 
+  def __repr__(self):
+    return "<Piece: name=%s size=(%d,%d) shape=%s>" % (self.name, self.width, self.height, self.shape)
+
 
 class Row(object):
 
@@ -49,6 +52,14 @@ class Row(object):
     self.maximum = (2 << (width - 1)) - 1
     self.content = 0
     self.tiles   = [None] * width
+
+  def copy(self):
+    instance         = object.__new__(Row)
+    instance.width   = self.width
+    instance.maximum = self.maximum
+    instance.content = self.content
+    instance.tiles   = list(self.tiles)
+    return instance
 
   def full(self):
     return self.content == self.maximum
@@ -95,6 +106,14 @@ class Board(object):
     self.rows           = []
     self.cleared        = 0
     self.maximum_height = 0
+
+  def copy(self):
+    instance                = object.__new__(Board)
+    instance.width          = self.width
+    instance.rows           = [row.copy() for row in self.rows]
+    instance.cleared        = self.cleared
+    instance.maximum_height = self.maximum_height
+    return instance
 
   def render(self):
     line = "+" + ("-" * self.width) + "+"

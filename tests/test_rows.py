@@ -73,6 +73,27 @@ class TestRows(unittest.TestCase):
     self.assertFalse(row.empty())
     self.assertTrue(row.full())
 
+  def test_copying_a_row(self):
+    piece = self.piece_c
+    row = Row(8)
+    row.place(piece, 0, 0)
+    self.assertEqual(0b11110000, row.content)
+    copy = row.copy()
+    self.assertEqual(row.content, copy.content)
+    self.assertEqual(row.tiles, copy.tiles)
+    self.assertEqual(row.width, copy.width)
+    self.assertEqual(row.maximum, copy.maximum)
+    self.assertFalse(row.full())
+    self.assertFalse(copy.full())
+    row.place(piece, 0, 4)
+    self.assertEqual(0b11111111, row.content)
+    self.assertEqual(0b11110000, copy.content)
+    self.assertNotEqual(row.tiles, copy.tiles)
+    self.assertEqual([piece] * 4, row.tiles[4:])
+    self.assertEqual([None] * 4, copy.tiles[4:])
+    self.assertEqual(row.width, copy.width)
+    self.assertEqual(row.maximum, copy.maximum)
+
   def test_placing_an_item_updates_the_content(self):
     piece_b, piece_c, piece_d = self.piece_b, self.piece_c, self.piece_d
     row = Row(11)
