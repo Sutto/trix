@@ -8,9 +8,6 @@ class Configuration:
     def merge(self, object):
         self.__dict__.update(object.__dict__)
 
-    def load_file(self, path):
-      pass
-
     def __repr__(self):
       data = self.__dict__
       information = " ".join(["%s=%r" % (k, data[k]) for k in data])
