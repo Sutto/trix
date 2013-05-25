@@ -1,4 +1,5 @@
 from .actions import *
+from .game import Rotations
 from .utilities import Variation
 import random
 import sys
@@ -78,7 +79,7 @@ class PrimaryAgent(Agent):
 
   def should_explore_variation(self, variation):
     # Hard code to a look ahead of 1 for the moment.
-    return variation.depth < 3
+    return variation.depth < 2
 
   def child_variations_for(self, variation):
     variations  = []
@@ -105,7 +106,7 @@ class PrimaryAgent(Agent):
 
   def possible_actions_for_piece(self, env, piece, klass):
     # TODO: Use precomputed rotations.
-    for r in piece.rotations():
+    for r in Rotations[piece.name]:
       for i in env.possible_left_offsets_for(r):
         yield klass(r, i)
 

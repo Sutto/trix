@@ -73,6 +73,9 @@ class Row(object):
   def render(self):
     return "".join(' ' if piece is None else piece.name for piece in self.tiles)
 
+  def cell_is_empty(self, index):
+    return self.tiles[index] is None;
+
   def can_place(self, piece, piece_row, left_offset):
     # First, we know it must fit within the bounds of the row.
     if (left_offset + piece.width) > self.width:
@@ -140,6 +143,13 @@ class Board(object):
     # Now, post-processing when the row is placed.
     self._clear_full_rows()
     self._update_stats()
+
+  def depth_for_row(self, row_index):
+    height = self.height()
+    for i in range(height):
+      if not self.rows[i].cell_is_empty(row_index):
+        return i
+    return height
 
   def _prepend_empty_row(self):
     self.rows.insert(0, Row(self.width))

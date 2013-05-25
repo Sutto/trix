@@ -85,6 +85,16 @@ class TestBoard(unittest.TestCase):
     board.place(piece_a, 0)
     self.assertEqual(3, board.height())
 
+  def test_calculating_depth_of_rows(self):
+    board = Board(5)
+    board.place(self.piece_c, 0)
+    board.place(self.piece_b, 0)
+    self.assertEqual(0, board.depth_for_row(0))
+    self.assertEqual(2, board.depth_for_row(1))
+    self.assertEqual(3, board.depth_for_row(2))
+    self.assertEqual(3, board.depth_for_row(3))
+    self.assertEqual(4, board.depth_for_row(4))
+
   def test_placing_on_top_of_each_other(self):
     board = self.board
     piece = self.piece_c

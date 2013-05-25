@@ -73,6 +73,24 @@ class TestRows(unittest.TestCase):
     self.assertFalse(row.empty())
     self.assertTrue(row.full())
 
+  def test_cell_is_empty(self):
+    row = Row(8)
+    piece = self.piece_c
+    self.assertTrue(row.cell_is_empty(0))
+    self.assertTrue(row.cell_is_empty(3))
+    self.assertTrue(row.cell_is_empty(4))
+    self.assertTrue(row.cell_is_empty(7))
+    row.place(piece, 0, 0)
+    self.assertFalse(row.cell_is_empty(0))
+    self.assertFalse(row.cell_is_empty(3))
+    self.assertTrue(row.cell_is_empty(4))
+    self.assertTrue(row.cell_is_empty(7))
+    row.place(piece, 0, 4)
+    self.assertFalse(row.cell_is_empty(0))
+    self.assertFalse(row.cell_is_empty(3))
+    self.assertFalse(row.cell_is_empty(4))
+    self.assertFalse(row.cell_is_empty(7))
+
   def test_copying_a_row(self):
     piece = self.piece_c
     row = Row(8)

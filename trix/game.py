@@ -10,13 +10,15 @@ addPiece('5', ((1, 1), (0, 1), (0, 1)))
 addPiece('6', ((1, 0), (1, 1), (0, 1)))
 addPiece('7', ((0, 1), (1, 1), (1, 0)))
 
+Rotations = {piece.name: piece.rotations() for piece in Pieces.values()}
+
 TotalCount     = 4 * len(Pieces)
 PieceFrequency = 1 / len(Pieces)
 Frequencies    = {}
 
 # Calculate the per-rotation frequency for a given sequence of items.
 for name, piece in Pieces.items():
-  rotations = piece.rotations()
+  rotations = Rotations[piece.name]
   # The frequency of each item is proportional to
   individualOccurences = 4 / len(rotations)
   frequencyWithinPiece = individualOccurences / 4
