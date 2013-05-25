@@ -1,0 +1,88 @@
+\documentclass[a4paper,14pt]{article}
+\usepackage{setspace,fullpage,booktabs,lscape,float}
+\usepackage[final]{pdfpages}
+\title{Trix - A tetris playing intelligent agent\\
+\Large{CITS4211 Project, 2013}}
+\author{Darcy Laycock (20369588)}
+\begin{document}
+  \maketitle
+  \doublespacing
+  \abstract{
+    This report investigates the implementation and design of "Trix", an intelligent agent
+    written in Python designed to play a modified version of the popular video game, Tetris.
+  }
+  \tableofcontents
+  \newpage
+  \section{Introduction}
+  \section{Problem Analysis / Breakdown}
+  When designing trix, there were several prime concerns initially in understanding the game. One thing
+  worth nothing is that the design of the game of tetris itself is complex - each state is dependendant
+  heavily on the actions required to reach that state, the game has an incredibly large combination of possible
+  world states and hence is infeasible to precalculate much of the world.
+
+  Likewise, at any stage of play, there are a dazzling number of choices - even placing a given piece
+  involves a number of possibilibies that vary based on the piece and the rotation.
+
+  Given in image here, we can see the seven base pieces - In playing, each piece can also be rotated to a number
+  possible places. (See anotated version for the possible rotations). Thus, for a given board size, each piece has
+  an average number of rotations.
+
+  The goal of the game is to find an end state that minimizes the end "height" of the board. One of the games condition
+  is that when all of the cells of a given row are filled, that row is "cleared" - thus, lowering the height by 1 and increasing
+  the number of cleared cells by 1 simultaneously.
+
+  Because of these, we aim to find an algorithm for the agent that is capable of:
+  \begin{itemize}
+    \item Performing in a minimal amount of time.
+    \item Considering the effects of placing items in a buffer.
+    \item Considering the effect of placing the item directly.
+    \item Considering the effect of playing a piece from the buffer.
+    \item Aims to end with the mimimal total height.
+    \item Ignores blatantly bad-cases of the game.
+  \end{itemize}
+
+  Given the broad number of options, our hope is thus that we can attempt to simplify the problem by breaking it down
+  to a simpler, easier to optimise problem. The problem is, by default, one of search - how do we find the state with the
+  minimal final height?
+
+  The problem with this question lies in the fact that minimal is a qualitative measure instead of a quantitative measure.
+  In order to say a final height is minimal, we need something to compare to. To make this simpler, we can instead rephrase
+  the requirement to something measurable - We wish to final the path that ends with a board of height X. Thus, we can run the
+  algorithm iteratively, increasing X (from a default value of zero - meaning the game ends with nothing on the board) until we
+  find a completion that terminates.
+
+  The issue with this in the default state is that we may have an absurd number of combinations and with a relatively high branching
+  factor (one that varies even further with changes to width of the board and the buffer size), how do we thus find a solution that
+  runs in reasonable time?
+
+  In doing so, we can take advantage of several factors. First, we witness that there are portions of the game that zero out - that is,
+  we get chains of action / piece combinations that can zero out the rows. In any given game, it's possibly for the height to vary from
+  zero to a maximum height and back to zero again, even on portions of input many pieces long.
+
+  Along side this, we have the issue that longer chains of pieces that zero out can be more useful than short platforms due to the fact
+  they add nothing to the final height but can clear a larger number of rows at once. Finding the balance between short runs (e.g.  less
+  possible combinations of actions to find a goal node) and longer runs (more possible combinations but more removed from the board) is one
+  possible thing to optimize in the algorthm.
+
+  With all of this in mind, I set out to developer a series of edge case games with which to test again - that is, games which combine features
+  of either being simple (e.g. a repeated cycle of z / s shapes) - and which prove easier for a human to run (and hence verify the output of).
+
+  \subsection{TODO}
+  \begin{itemize}
+    \item Branching Factor (based on width, buffer size, so on)
+    \item Pathological Pieces
+    \item Rotations vs Positions
+    \item Placing Pieces / non-simple optimizations
+  \end{itemize}
+
+  \section{Agent Design}
+  \section{Agent Analysis}
+  \section{Conclusions}
+  \addcontentsline{toc}{section}{List of Figures}
+  \listoffigures
+  \addcontentsline{toc}{section}{References}
+  \section*{References}
+    \begin{itemize}
+      \item Example Reference Here.s
+    \end{itemize}
+\end{document}

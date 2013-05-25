@@ -1,0 +1,10 @@
+- Search for a node with minimal "open space" - space on top that needs to be filled
+- starting height = 0
+- Cost is filled by height cost of node
+
+- For each node visible from top, cost = (height): minimize the cost
+
+Target: Find node with cost = min
+- increase min cost until node found.
+
+- Cost so far: current cost + heuristic of cost removed
