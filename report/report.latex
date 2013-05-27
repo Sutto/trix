@@ -15,6 +15,7 @@
   \newpage
   \section{Introduction}
   \section{Problem Analysis / Breakdown}
+  \label{sec:analysis}
   When designing trix, there were several prime concerns initially in understanding the game. One thing
   worth nothing is that the design of the game of tetris itself is complex - each state is dependendant
   heavily on the actions required to reach that state, the game has an incredibly large combination of possible
@@ -67,17 +68,94 @@
   With all of this in mind, I set out to developer a series of edge case games with which to test again - that is, games which combine features
   of either being simple (e.g. a repeated cycle of z / s shapes) - and which prove easier for a human to run (and hence verify the output of).
 
-  \subsection{TODO}
-  \begin{itemize}
-    \item Branching Factor (based on width, buffer size, so on)
-    \item Pathological Pieces
-    \item Rotations vs Positions
-    \item Placing Pieces / non-simple optimizations
-  \end{itemize}
+  Also worth noting at this stage is there is a second way of expressing this goal - maximum the number of rows cleared at a given point.
 
   \section{Agent Design}
+
+  Using the understanding of tetris and the issues associated with it as found in section~\ref{sec:analysis}, an agent program called "Trix" for playing tetris. The structure of Trix is as follows and was designed for these reasons:
+
+  \subsection{General Structure}
+
+  The agent program for trix was implemented in Python - a language chosen primarily for it's quick feedback / testing flow. The structure
+  itself follows that in general of the rough agent design as outlined in \cite{textbook1} - An Agent class responsible for making decisions,
+  and classes for the Environment and Percepts.
+
+  To this end, trix implements a straight forward environment representing tetris itself, as well as the following classes for each function
+  of the system:
+
+  \begin{description}
+    \item[trix.environment.Piece] - A piece in tetris, capable of performing rotations and various debugging-related operations on the piece.
+    \item[trix.environment.Board] - The board is the actual playing field of tetris - pieces are placed onto the board.
+    \item[trix.environment.Environment] - A combination of buffer, history and environment that combines the game.
+    \item[trix.agents.Action] - the base action of the object, subclassed for the varying types of the actions.
+    \item[trix.agents.Agent] - An abstract agent interface tying it all together. Subclassed for our actual agent.
+  \end{description}
+
+  \subsection{Algorithm Design}
+
+  Initially, two different algorithms were built out for testing - The first algorithm was a simple random-choice algorithm: A trivial agent
+  that simply chooses a random rotation and offset to place a piece, primarily used to test that the environment works as expected.
+
+  The second, more complex approach, is still rather naive - it's a depth-limited search which will see what consecutive series of placing
+  pieces results in. This option explores all choices, using a utility function to pick the best end result as the output. Still, this approach
+  faces issues because of the exponential complexity of exploring the problem space (otherwise known as the high branching factor).
+
+  The final approach settled upon (and represented as the default agent in Trix) is a search algorithm using a modified form of A Star search.
+  The algorithm operates in tree search form, where each node represents a given state (in the form of a combination of buffer, upcoming pieces and
+  board state) - and branches off a given result being created by the actions possible for a given state.
+
+  We start with the root node as the starting environment for a search - by default, an empty buffer and a blank board - with a list of upcoming
+  items fed from the file input. We append this to the search algorithm, and then search through states either until we reach the goal node (in general, a node which has the target height - the default being zero) or, since we want to greatly limit the search space, we've reached a globally
+  defined limit.
+
+  For practical performance reasons, we hard limit the search to terminate after it's explored a number of nodes (by default, it will terminate once it has explored 250 nodes). This means that choosing good heuristics is more important than ever because we need to ensure we explore the best choices first.
+
+  In this case, choosing a good heuristic and cost measure for the A-star search proved to be one of the hardest parts of the process. We aim to find
+  a heuristic which expresses some distance from a good solution (hence, we can find a shorter path to an optimal solution) -
+
+  Likewise, the search is constrsained in several other aspects to make it slightly more useful. We define the depth of a node as number of
+  actions needed to trigger a given state. Using this depth, we implement a cutoff limit - namely, we note that once the depth of the search
+  tree is greater than a given value, the node is marked as terminal so we don't continue on further. Initially, we'll define this cutoff limit
+  at the size of the buffer plus two (allowing you to add an item to an empty buffer, fill it and then remove it).
+
+  This value was chosen because it means we can, with a good heuristic and cost function, explore the effect of keeping an item in the buffer for
+  a reasonable amount of time.
+
+  Finally, one extra optimization to the search was added. With the original design, it was intended that we'd start with search for a goal node
+  with final height X (where X starts at 0 and increases to a maximum defined as the sum of the current boards height and the current pieces height
+  - a value that represents the worst case scenario of a piece placed on a full top row). Instead, we only perform the search for target height
+  zero, and take advantage of the fact in the search for lower heights, we'll encounter boards with larger heights.
+
+  Put another away, given the example of a target height 0 (hence the search terminates when it reaches a node where the associated boards height
+  is 0) and the heuristic and cost method trix uses seeks only to minimize the height (it doesn't care about the target value, be it 0 or 1), it will
+  explore the same nodes. Hence, in the search for a node with target value zero, as we encounter a node we'll keep track of it's actual height - if
+  it has the shorted path to that given height, we'll record the trail actions leading to that height.
+
+  Using this, if the search for zero doesn't find a goal node (that is, it either expanded all options or hit one of the other cutoff conditions),
+  we instead return the path to the minimal set out of those heights.
+
+  \subsection{Agent Choices}
+
+  \subsection{Running the Agent}
+
   \section{Agent Analysis}
+
   \section{Conclusions}
+
+  \subsection{Future Directions}
+
+  The design of trix leaves much room for future improvement. The following are future options that could be investigated to provide
+  further improvement in performance and how they would actually help:
+
+  \begin{description}
+    \item[Better search heuristics and costs:] The current method of calculating cost (and an associated heuristic for it) are far from ideal. A better representative (e.g. space filled) would lead to better performance by prioritizing better boards first.
+    \item[Alternative search algorithms:] Instead of attempting to solve the problem of a good heuristic method, we could instead use a Best First
+    Search, and focus on improving the utility function. This may be a simpler approach to fix, but still relies on a good utility function.
+    \item[Improved Utility measurements:] The current utility function (used primarily in choosing the best option) is pretty naive, using fixed
+    weights and measuring only height, cleared rows and the number of cleared items. Future improvement could use reinforcement learning to
+    improve the utility function.
+  \end{description}
+
   \addcontentsline{toc}{section}{List of Figures}
   \listoffigures
   \addcontentsline{toc}{section}{References}

@@ -10,6 +10,9 @@ class Action(object):
 
   def render(self): return None
 
+  def __repr__(self):
+    return "<%s>" % (self.__class__.__name__)
+
 class DoNothing(Action):
 
   def apply(self, environment): pass
@@ -20,20 +23,35 @@ class AddToBuffer(Action):
     self.piece = piece
 
   def apply(self, environment):
-    environment.consume()
+    consumed = environment.consume()
     environment.add_to_buffer(self.piece)
+
+  def heuristic_cost_on(self, environment):
+    return 0
 
 class PlacePiece(Action):
 
-  def __init__(self, piece, left_offset):
-    self.piece       = piece
-    self.left_offset = left_offset
+  def __init__(self, piece, left_offset, original_piece):
+    self.piece          = piece
+    self.left_offset    = left_offset
+    self.original_piece = original_piece
 
   def apply(self, environment):
     environment.place_piece_at(self.piece, self.left_offset)
 
   def render(self):
     return render_piece_and_offset(self.piece, self.left_offset)
+
+  def heuristic_cost_on(self, environment):
+    piece_height = self.piece.height
+    left         = self.left_offset
+    right        = left + self.piece.width
+    board        = environment.board
+    max_depth    = max(board.depth_for_row(i) for i in range(left, right))
+    return max(piece_height - max_depth, 0)
+
+  def __repr__(self):
+    return "<%s left_offset=%d piece=%s>" % (self.__class__.__name__, self.left_offset, repr(self.piece))
 
 class PlaceNextPiece(PlacePiece):
 
@@ -44,6 +62,11 @@ class PlaceNextPiece(PlacePiece):
 
 class PlaceFromBuffer(PlacePiece):
 
+  def __init__(self, piece, left_offset, original_piece):
+    self.piece          = piece
+    self.left_offset    = left_offset
+    self.original_piece = original_piece
+
   def apply(self, environment):
     super().apply(environment)
-    environment.remove_from_buffer(self.piece)
+    environment.remove_from_buffer(self.original_piece)

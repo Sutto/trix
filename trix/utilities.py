@@ -29,8 +29,7 @@ class Referee(object):
 
   def cleared(self):        return self.board.cleared
   def maximum_height(self): return self.board.maximum_height
-
-  def holes(self):  return 0
+  def holes(self):          return self.board.holes
   def valleys(self): return 0
 
 class CutoffMetric(object):
@@ -39,19 +38,26 @@ class CutoffMetric(object):
 
 class Variation(object):
 
-  __slots__ = ['environment', 'depth', 'actions', '_utility']
+  __slots__ = ['environment', 'depth', 'actions', '_utility', 'height', 'number_of_actions']
 
   def __init__(self, environment, depth, actions):
-    self.environment = environment
-    self.depth       = depth
-    self.actions     = actions
-    self._utility    = None
+    self.environment       = environment
+    self.depth             = depth
+    self.actions           = actions
+    self.number_of_actions = len(actions)
+    self.height            = environment.board.height()
+    self._utility          = None
 
   def fork(self, action):
     return Variation(self.environment.fork(action), self.depth + 1, self.actions + [action])
 
   @property
   def root_action(self): return self.actions[0]
+
+  @property
+  def priority_score(self):
+    return (self.number_of_actions, self.utility)
+
 
   @property
   def utility(self):

@@ -1,5 +1,14 @@
 from .percept import Percept
 
+class Generation(object):
+
+  _generation = 0
+
+  @classmethod
+  def next(klass):
+    klass._generation += 1
+    return klass._generation
+
 class Piece(object):
 
   __slots__ = ['name', 'shape', 'width', 'height', 'bit_masks', 'rotation']
@@ -48,12 +57,13 @@ class Piece(object):
 
 class Row(object):
 
-  __slots__ = ['width', 'maximum', 'content', 'tiles']
+  __slots__ = ['width', 'maximum', 'content', 'tiles',  'holes']
 
   def __init__(self, width):
     self.width   = width
     self.maximum = (2 << (width - 1)) - 1
     self.content = 0
+    self.holes   = width
     self.tiles   = [None] * width
 
   def copy(self):
@@ -62,6 +72,7 @@ class Row(object):
     instance.maximum = self.maximum
     instance.content = self.content
     instance.tiles   = list(self.tiles)
+    instance.holes   = self.holes
     return instance
 
   def full(self):
@@ -75,6 +86,9 @@ class Row(object):
 
   def cell_is_empty(self, index):
     return self.tiles[index] is None;
+
+  def calculated_holes(self):
+    return sum(1 if self.tiles[index] is None else 0 for index in range(self.width))
 
   def can_place(self, piece, piece_row, left_offset):
     # First, we know it must fit within the bounds of the row.
@@ -94,6 +108,7 @@ class Row(object):
     for i in range(piece.width):
       if piece_shape[i] == 1:
         self.tiles[left_offset + i] = piece
+    self.holes = self.calculated_holes()
 
   def _adjust_bit_mask(self, piece, piece_row, left_offset):
     bit_mask          = piece.bit_masks[piece_row]
@@ -105,13 +120,14 @@ class Row(object):
 # most recently added at the top. We model it like this so we can effectively
 class Board(object):
 
-  __slots__ = ['width', 'rows', 'cleared', 'maximum_height']
+  __slots__ = ['width', 'rows', 'cleared', 'maximum_height', 'holes']
 
   def __init__(self, width):
     self.width          = width
     self.rows           = []
     self.cleared        = 0
     self.maximum_height = 0
+    self.holes          = 0
 
   def copy(self):
     instance                = object.__new__(Board)
@@ -119,6 +135,7 @@ class Board(object):
     instance.rows           = [row.copy() for row in self.rows]
     instance.cleared        = self.cleared
     instance.maximum_height = self.maximum_height
+    instance.holes          = self.holes
     return instance
 
   def render(self):
@@ -128,6 +145,9 @@ class Board(object):
 
   def height(self):
     return len(self.rows)
+
+  def calculated_holes(self):
+    return sum(row.holes for row in self.rows)
 
     # The starting row for the bottom of the piece.
   def place(self, piece, left_offset):
@@ -191,13 +211,14 @@ class Board(object):
     current_height = self.height()
     if current_height > self.maximum_height:
       self.maximum_height = current_height
+    self.holes = self.calculated_holes()
 
 
 class Environment(object):
 
   class FullBuffer(Exception): pass
 
-  __slots__ = ['configuration', 'buffer', 'board', 'history', 'items']
+  __slots__ = ['configuration', 'buffer', 'board', 'history', 'items', 'current_gen', 'previous_gen']
 
   def __init__(self, configuration, items):
     self.configuration = configuration
@@ -205,6 +226,8 @@ class Environment(object):
     self.history       = []
     self.items         = items
     self.board         = Board(configuration.width)
+    self.current_gen   = Generation.next()
+    self.previous_gen  = None
 
   def copy(self):
     instance               = object.__new__(Environment)
@@ -213,7 +236,13 @@ class Environment(object):
     instance.history       = list(self.history)
     instance.board         = self.board.copy()
     instance.items         = list(self.items)
+    instance.previous_gen  = self.current_gen
+    instance.current_gen   = Generation.next()
     return instance
+
+  def __repr__(self):
+    previous_gen = str(self.previous_gen) if self.previous_gen else '?'
+    return "<Environment gen=%d previous=%s buffer=%d history=%s>" % (self.current_gen, previous_gen, len(self.buffer), len(self.history))
 
   def possible_left_offsets_for(self, piece):
     return range(self.board.width - piece.width + 1)
