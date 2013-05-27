@@ -100,8 +100,8 @@ class BruteForceAgent(Agent):
   def possible_actions_for(self, env, piece):
     if not env.buffer_is_full(): yield AddToBuffer(piece)
     for action in self.possible_actions_for_piece(env, piece, PlaceNextPiece): yield action
-    # for buffered_piece in env.buffer:
-    #   for action in self.possible_actions_for_piece(env, buffered_piece, PlaceFromBuffer): yield action
+    for buffered_piece in env.buffer:
+      for action in self.possible_actions_for_piece(env, buffered_piece, PlaceFromBuffer): yield action
 
 class Tracker(object):
 
@@ -109,16 +109,18 @@ class Tracker(object):
     self.visited      = 0
     self.history      = history
     self.max_nodes    = max_nodes
+    self.max_depth    = 0
     self.cutoff_depth = cutoff_depth
 
   def should_cutoff_after(self, variation):
     return self.visited >= self.max_nodes or variation.number_of_actions >= self.cutoff_depth
 
   def details(self):
-    return "Visited %d nodes, history = %s" % (self.visited, repr(self.history))
+    return "Visited %d nodes, max_depth = %d" % (self.visited, self.max_depth)
 
   def visit(self, variation):
     self.visited += 1
+    self.max_depth = max(self.max_depth, variation.number_of_actions)
     self.update_history(variation)
 
   def update_history(self, variation):
@@ -210,6 +212,7 @@ class MinimalSearchAgent(Agent):
     tracker        = Tracker(history, cutoff_depth)
     root_node      = self.node_class(root_variation, None, tracker, target_height, root_node=True)
     result         = AStar(root_node).search()
+    print(tracker.details())
     if result:
       return result.variation()
     else:
@@ -218,7 +221,7 @@ class MinimalSearchAgent(Agent):
 
   def find_variation(self, environment, percept):
     # TODO: Improve the maximum chain length for a given item.
-    max_chain_length = len(environment.buffer) + len(environment.items)
+    max_chain_length = max(environment.configuration.buffer * 2, 3)
     max_height       = environment.board.height() + percept.piece.height
     history          = {}
 

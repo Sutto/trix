@@ -16,7 +16,7 @@
   \section{Introduction}
   \section{Problem Analysis / Breakdown}
   \label{sec:analysis}
-  When designing trix, there were several prime concerns initially in understanding the game. One thing
+  When designing trix, there were several prime concerns initially in understanding the game of tetrix. One thing
   worth nothing is that the design of the game of tetris itself is complex - each state is dependendant
   heavily on the actions required to reach that state, the game has an incredibly large combination of possible
   world states and hence is infeasible to precalculate much of the world.
@@ -32,7 +32,8 @@
   is that when all of the cells of a given row are filled, that row is "cleared" - thus, lowering the height by 1 and increasing
   the number of cleared cells by 1 simultaneously.
 
-  Because of these, we aim to find an algorithm for the agent that is capable of:
+  Because of these, with Trix we aim to find an algorithm for the agent that is capable of:
+
   \begin{itemize}
     \item Performing in a minimal amount of time.
     \item Considering the effects of placing items in a buffer.
@@ -43,45 +44,40 @@
   \end{itemize}
 
   Given the broad number of options, our hope is thus that we can attempt to simplify the problem by breaking it down
-  to a simpler, easier to optimise problem. The problem is, by default, one of search - how do we find the state with the
+  to a simpler, easier to optimise problem. The problem at hand, by default, one of search - how do we find the state with the
   minimal final height?
 
   The problem with this question lies in the fact that minimal is a qualitative measure instead of a quantitative measure.
-  In order to say a final height is minimal, we need something to compare to. To make this simpler, we can instead rephrase
-  the requirement to something measurable - We wish to final the path that ends with a board of height X. Thus, we can run the
-  algorithm iteratively, increasing X (from a default value of zero - meaning the game ends with nothing on the board) until we
-  find a completion that terminates.
+  In order to say a final height is minimal, we need something to compare to. To make it something which an actual goal (something
+  we can say is a goal node based only on the information present in the node), we must thus rephrase it into a different question: We wish to final the path that ends with a board of height X. Thus, by searching iteratively, increasing X (from a default value of zero - meaning the game
+  ends with nothing on the board) until we find a completion that terminates.
 
-  The issue with this in the default state is that we may have an absurd number of combinations and with a relatively high branching
-  factor (one that varies even further with changes to width of the board and the buffer size), how do we thus find a solution that
-  runs in reasonable time?
+  With this an traditional search algorithms, we may still have an absurd number of combinations and with a relatively high branching
+  factor (one that varies even further with changes to width of the board and the games buffer size), we need to simplify even further
+  in order to find an approach that will run in reasonable fast.
 
   In doing so, we can take advantage of several factors. First, we witness that there are portions of the game that zero out - that is,
   we get chains of action / piece combinations that can zero out the rows. In any given game, it's possibly for the height to vary from
-  zero to a maximum height and back to zero again, even on portions of input many pieces long.
+  zero to a maximum height and back to zero again, even on portions of input many pieces long. Hence, we don't need to necessarily search for
+  a zero over the whole game, we only need to search for a series of actions that effectively cancel themselves out.
 
-  Along side this, we have the issue that longer chains of pieces that zero out can be more useful than short platforms due to the fact
-  they add nothing to the final height but can clear a larger number of rows at once. Finding the balance between short runs (e.g.  less
-  possible combinations of actions to find a goal node) and longer runs (more possible combinations but more removed from the board) is one
-  possible thing to optimize in the algorthm.
+  With all of this in mind, we thus need some test cases which exhibit the behaviour of this - along with some traditional input. Hence, we test
+  situations (and board sizes) that are known to have simple solutions (e.g. even width and square blocks) and cases such as alternating s / z which
+  are hard to place and fill and sequences of the I pieces which require good look ahead to choose an optimal placement.
 
-  With all of this in mind, I set out to developer a series of edge case games with which to test again - that is, games which combine features
-  of either being simple (e.g. a repeated cycle of z / s shapes) - and which prove easier for a human to run (and hence verify the output of).
-
-  Also worth noting at this stage is there is a second way of expressing this goal - maximum the number of rows cleared at a given point.
+  Also worth noting at this stage is there is a second way of expressing this goal - maximizing the number of rows cleared at a given point. Trix chose against this since there is a lot mroe variation in the optimal goal (e.g. what is the maximum cleared of the board) than the minimum height - we can assume zero for height and work backwards, hitting the target a lot easier than going in the inverse direction.
 
   \section{Agent Design}
 
-  Using the understanding of tetris and the issues associated with it as found in section~\ref{sec:analysis}, an agent program called "Trix" for playing tetris. The structure of Trix is as follows and was designed for these reasons:
+  Using the understanding of tetris and the issues associated with it as found in section~\ref{sec:analysis}, an agent program called "Trix" for playing tetris.
 
   \subsection{General Structure}
 
   The agent program for trix was implemented in Python - a language chosen primarily for it's quick feedback / testing flow. The structure
-  itself follows that in general of the rough agent design as outlined in \cite{textbook1} - An Agent class responsible for making decisions,
-  and classes for the Environment and Percepts.
+  itself follows that in general of the rough agent design as outlined in \cite{textbook1} - An Agent class responsible for making decisions
+  and classes for the Environment and Percept.
 
-  To this end, trix implements a straight forward environment representing tetris itself, as well as the following classes for each function
-  of the system:
+  With this in mind, the key classes when exploring the code are:
 
   \begin{description}
     \item[trix.environment.Piece] - A piece in tetris, capable of performing rotations and various debugging-related operations on the piece.
@@ -93,54 +89,135 @@
 
   \subsection{Algorithm Design}
 
-  Initially, two different algorithms were built out for testing - The first algorithm was a simple random-choice algorithm: A trivial agent
-  that simply chooses a random rotation and offset to place a piece, primarily used to test that the environment works as expected.
+  For testing purposes, the agent algorithm in Trix started out in two simple forms. The first, used exclusively for testing the framework in which Trix runs, was a random agent that simply chooses a random placement and rotation for each piece encountered.
 
-  The second, more complex approach, is still rather naive - it's a depth-limited search which will see what consecutive series of placing
-  pieces results in. This option explores all choices, using a utility function to pick the best end result as the output. Still, this approach
-  faces issues because of the exponential complexity of exploring the problem space (otherwise known as the high branching factor).
+  The second, more useful approach, was a very basic breadth-first-search based algorithm that expands all nodes up to a given depth. For early technical reasons, this approach doesn't use the buffer at all and the default maximum depth (a term explained shortly) is one.
 
-  The final approach settled upon (and represented as the default agent in Trix) is a search algorithm using a modified form of A Star search.
-  The algorithm operates in tree search form, where each node represents a given state (in the form of a combination of buffer, upcoming pieces and
-  board state) - and branches off a given result being created by the actions possible for a given state.
+  Due to the high branching factor (which means the options to explore are exponentially related to the depth and easily run out of time and space). Unfortunately, this isn't a suitable agent for real world game play (with the example input file, run time went from under one second for a max depth of 1, a run time of 3-4 minutes for a max depth of 2 and 20-30 minutes for a max depth of 3. For obvious reasons, tests were not run with a depth higher than that.
 
-  We start with the root node as the starting environment for a search - by default, an empty buffer and a blank board - with a list of upcoming
-  items fed from the file input. We append this to the search algorithm, and then search through states either until we reach the goal node (in general, a node which has the target height - the default being zero) or, since we want to greatly limit the search space, we've reached a globally
-  defined limit.
+  The final, and more suitable agent used with in Trix, is based on a variant of A-star search with several different optimisations in place to make it suitable for use in the game.
 
-  For practical performance reasons, we hard limit the search to terminate after it's explored a number of nodes (by default, it will terminate once it has explored 250 nodes). This means that choosing good heuristics is more important than ever because we need to ensure we explore the best choices first.
+  First, before exploring the implementation, it's worth expanding a little on the structure of the world as used in the emulator. In terms of graph search (or, more accurately in this form, tree search), a node is simply a combination of four things: A tetris board state, a buffer and a history of actions applied to the board leading to that state. Finally, it's composed of a list of upcoming pieces for the game board.
 
-  In this case, choosing a good heuristic and cost measure for the A-star search proved to be one of the hardest parts of the process. We aim to find
-  a heuristic which expresses some distance from a good solution (hence, we can find a shorter path to an optimal solution) -
+  Actions are defined in three forms: PlaceNextPiece, which will takes the next incoming piece, consumes it from the list of upcoming pieces and then places it at a given left offset on the board. The second form, AddToBuffer, simply consumes the next piece from the pending list and places it in the specified environments buffer. Finally, PlaceFromBuffer takes a piece from the buffer and places it at a given position.
 
-  Likewise, the search is constrsained in several other aspects to make it slightly more useful. We define the depth of a node as number of
-  actions needed to trigger a given state. Using this depth, we implement a cutoff limit - namely, we note that once the depth of the search
-  tree is greater than a given value, the node is marked as terminal so we don't continue on further. Initially, we'll define this cutoff limit
-  at the size of the buffer plus two (allowing you to add an item to an empty buffer, fill it and then remove it).
+  Hence, the initial search state begins with an empty board, a full list of items, empty history and an empty buffer. In search, we thus define the children of that node as the results of possible actions - and then we update that to construct the root node as time goes on).
 
-  This value was chosen because it means we can, with a good heuristic and cost function, explore the effect of keeping an item in the buffer for
-  a reasonable amount of time.
+  Using the search algorithm thus, our goal is to find a series of actions (where depth is the number of successive actions applied) which leads to the target end state. Since the smallest height isn't a quantitative value (or, more aptly, can't be found without first finding all possible heights), we instead start by searching for a node with the height of 0 and then terminating the search either when we've found the goal node or we've exhausted the search.
 
-  Finally, one extra optimization to the search was added. With the original design, it was intended that we'd start with search for a goal node
-  with final height X (where X starts at 0 and increases to a maximum defined as the sum of the current boards height and the current pieces height
-  - a value that represents the worst case scenario of a piece placed on a full top row). Instead, we only perform the search for target height
-  zero, and take advantage of the fact in the search for lower heights, we'll encounter boards with larger heights.
+  Since we're not guaranteed there is going to be an end state with a given height, we thus intend to iterate over the heights, starting with zero and increasing to a maximum (defined as the height of the starting board for a search),
 
-  Put another away, given the example of a target height 0 (hence the search terminates when it reaches a node where the associated boards height
-  is 0) and the heuristic and cost method trix uses seeks only to minimize the height (it doesn't care about the target value, be it 0 or 1), it will
-  explore the same nodes. Hence, in the search for a node with target value zero, as we encounter a node we'll keep track of it's actual height - if
-  it has the shorted path to that given height, we'll record the trail actions leading to that height.
+  Since we're using A-star, the key part of the search algorithm is hence a distance metric (from the goal node) and a suitable heuristic to use in the calculation of this. Since choosing an admissible heuristic isn't incredibly important (we don't wish to have a complete search, and we don't want an optimal result - just one pretty good for speed reasons), Trix currently uses a fairly trivial approach with the intention (unfortunately, not yet done) to improve upon it in the future.
 
-  Using this, if the search for zero doesn't find a goal node (that is, it either expanded all options or hit one of the other cutoff conditions),
-  we instead return the path to the minimal set out of those heights.
+  In this case, the current version of Trix uses a distance measure based on the height of the board (where we optimise for the most rows cleared - a height at the end means we've cleared more rows) and the metric being the maximum height for performing a given action.
 
-  \subsection{Agent Choices}
+  Adding to a buffer is the current height + 0, any piece placement finds the maximum depth at the current position / span for the piece, subtracts that from the piece height and then adds the resultant number to the current height - for instance, if we're placing a piece 4 cells tall in a valley that is 2 under the maximum height at it's deepest and the current board height is 3, our estimated best-case height after (noting we don't consider clearing rows) is 5. If, on the other hand, the current board is 6 high but the valley is 5, the estimated cost is 2 (since we can clear up to 4 rows at once).
+
+  This heuristic is very far from optimal, but in our test cases, appears to give reasonable results (more time is expected to lead to a better heuristic and distance measure) - best number of rows removed and the height is not an ideal heuristic by any account (as is shown later in the performance section).
+
+  Finally, as two levels of performance optimisation, two tweaks were added to the algorithm to make it run in reasonable time:
+
+  First, the A-star search cuts off after exploring 200 nodes. This, unfortunately, means a much smaller space is explored (without an optimal distance / heuristic metric) but means that the algorithm generally, in testing, runs at approximately 5 pieces per second tested. Likewise, we cutoff of expansion of a node if it's further ahead in the future than the current cutoff depth (defaulting to the buffer size times 2 - to allow adding in, replacing, and taking out - a full buffer). We default to a minimum cutoff depth of three, to ensure it performs acceptably with empty buffers.
+
+  Lastly, since the initial goal node has a target height zero, and we increase that for each subsequent search - we take advantage of the fact that since any other search which does not find zero will terminate due to exploring the maximum number of nodes (as noted above), we'll explored a super set of nodes as if we'd specified a target height larger than zero.
+
+  Hence, we thus keep track of the best path to a given height. In this case, we define the best path as the longest path and, when the given path has the same length of others, the one ending in the best end state (as defined using a utility metric also used in BFS-based agent, defined based upon a weight sum of features such as height, cleared rows and unfilled cells.
+
+  Thus, once the search for the zero finishes, if we haven't found a path of actions that resulted in that, we see what the minimum height we did encounter was and choose that instead. This approach greatly cuts down the number of duplicate searches and gives a reasonably decent result most of the time.
 
   \subsection{Running the Agent}
 
+  Running Trix requires only access to Python3 - all other code is implemented in Trix itself. From a command line, if you have a unix system with
+  python in the path, your command to see usage is roughly:
+
+  \begin{verbatim}
+  ./bin/trix --help\end{verbatim}
+
+  Or, if you're using windows, simply invoke trix using python like so:
+
+  \begin{verbatim}
+  python3.exe ./bin/trix --help\end{verbatim}
+
+  Normal usage, ignoring invocation, is roughly:
+
+  \begin{verbatim}
+  ./bin/trix input-file output-file\end{verbatim}
+
+  For example,
+
+  \begin{verbatim}
+  ./bin/trix data/in.a data/out\end{verbatim}
+
+  Which will run it using the pieces in data/in.a and output to data/out.
+
+  Also note that you can use the -w option to specify the board width (defaulting to 11) and -b to specify the size of the buffer (defaulting to 1).
+
   \section{Agent Analysis}
 
+  This will be broken down into two sections, the first being observation analysis (based on observing sequences of games, using the modified version
+  of DrawPlacement.py in the tools/ directory of the code which produces a gif of the game) and analysis based on the search size used in the game.
+
+  \subsection{Observational Analysis}
+
+  Running the program, and comparing the choices it makes at each stage and the results it gives, the following was observed about the performance
+  of trix in it's current incarnation:
+
+  \begin{itemize}
+    \item With basis, traditional looking games (e.g. with a fairly even distribution of pieces), trix does a reasonable job of placing
+          pieces. It allows the height of the board to grow at times, making odd looking decisions at times but placing pieces that successfuly clears
+          out rows when available.
+    \item With the simple square cases and even width, the bot performs as expected - clearing out all rows (the easy one).
+    \item When playing any board size that isn't four with the I pieces, the algorithm unfortunately doesn't look far ahead enough to notice that
+          it can just place them vertically - instead opting to use the flat bar-style placement to minimize height locally.
+    \item In alternating sequences of s and z, it does a reasonably job in initial conditions of clearing the board (doing so at a reasonable pace),
+          but still allows it to out pace itself rather quickly, building up a large height.
+    \item Without the hard limit of the search, the implementation is still far to slow (suggesting a better heuristic and possibly distance method
+          needs to be devised), but still gives a reasonable result when terminating the search early.
+  \end{itemize}
+
+  \subsection{Experimental Analysis}
+
+  Removing the hard coded limit on searches (allowing the algorithm to run a full search), we unfortunately see that the time
+  it take to operates ballons.
+
+  For a series of measured tests (capturing the number of nodes expanded on each iteration and the max depth encountered), we defined the following test cases:
+
+  \begin{description}
+    \item[data/in.a] A repeating series of I pieces (1 repeated)
+    \item[data/in.b] A repeating series of the square pieces (2 repeated)
+    \item[data/in.c] A chain of I, Square and the two hook pieces repeating. (1245 repeated)
+    \item[data/in.d] Cycling s and z pieces (67 repeated)
+    \item[data/in.e] Each of the pieces, cycled in order repeatedly.
+    \item[data/in.f] An arbitrary set that is heavy on 1-4.
+    \item[data/in.g] The example input
+  \end{description}
+
+  In each of these cases, the depth the search hits tended to be the maximum cutoff limit (as defined by 3 times the buffer size - in this case 1) - with very few (either, only trivial choices - such as those that clear rows and the estimated distance was accurate).
+
+  For each example above, with a buffer size of one, the branching factor was, respectively:
+
+  \begin{description}
+    \item[data/in.a] b = 7.525
+    \item[data/in.b] b = 7.003
+    \item[data/in.c] b = 8.080
+    \item[data/in.d] b = 7.847
+    \item[data/in.e] b = 7.989
+    \item[data/in.f] b = 8.403
+    \item[data/in.g] b = 7.936
+  \end{description}
+
+  This is an good improvement on the base branching factor of approximately
+  26, but still far from optimal.
+
+  Unfortunately, increasing the buffer size led to an expontential increase in the search time, showing that it didn't unfortunately improve upon the results - That is, the run time of the algorithm from experimental analysis was exponential with regards to the buffer size (in it's naive form).
+
   \section{Conclusions}
+
+  All in all, the end results show that whilst Trix can play the modified game of tetris as given, it doesn't necessarily do very well, with it's ability to look into the future being severly limited and it's results thus only working well for cases where it tends to have an even distribution with the board clearing based on that.
+
+  In the case of squares in non even width boards (where some solutions are better than others), it still managed to choose options which were sub optimal (e.g. leaving three, 1-cell wide gaps) whilst the I-based example, it completely missed the option of filling them with vertical I's thus never clearing a row.
+
+  This shows that whilst Trix does improve on the raw, brute force approach, it still needs much improvement to make it a viable competitor - but a good learning excercise none the less.
 
   \subsection{Future Directions}
 
@@ -148,19 +225,14 @@
   further improvement in performance and how they would actually help:
 
   \begin{description}
-    \item[Better search heuristics and costs:] The current method of calculating cost (and an associated heuristic for it) are far from ideal. A better representative (e.g. space filled) would lead to better performance by prioritizing better boards first.
-    \item[Alternative search algorithms:] Instead of attempting to solve the problem of a good heuristic method, we could instead use a Best First
-    Search, and focus on improving the utility function. This may be a simpler approach to fix, but still relies on a good utility function.
-    \item[Improved Utility measurements:] The current utility function (used primarily in choosing the best option) is pretty naive, using fixed
-    weights and measuring only height, cleared rows and the number of cleared items. Future improvement could use reinforcement learning to
-    improve the utility function.
+    \item[Better search heuristics and distance:] The current method of calculating distance from the goal node (and an associated heuristic for it) are far
+    from ideal. A better representative (e.g. space filled) would lead to better performance by prioritizing better boards first. Another would be to test and see if cleared rows (versus height) is a better option.
+    \item[Improved Utility measurements:] The current utility function (used primarily in choosing the best option when comparing choices for a given height) is pretty naive, using fixed weights and measuring only height, cleared rows and the number of cleared items. Future improvement could use reinforcement learning to improve this value as we learn more about different pieces and their placements on the board.
   \end{description}
 
-  \addcontentsline{toc}{section}{List of Figures}
-  \listoffigures
   \addcontentsline{toc}{section}{References}
   \section*{References}
     \begin{itemize}
-      \item Example Reference Here.s
+      \item Example Reference Here
     \end{itemize}
 \end{document}

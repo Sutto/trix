@@ -20,7 +20,7 @@ class GeneralSearch(object):
 
   def __init__(self, root):
     self.root = root
-    self.maximum = 200
+    self.maximum = float('inf')
 
   def next_candidate(self):
     raise NotImplementedError("You must implement next_candidate() in your search.")

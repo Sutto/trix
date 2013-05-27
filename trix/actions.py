@@ -48,7 +48,8 @@ class PlacePiece(Action):
     right        = left + self.piece.width
     board        = environment.board
     max_depth    = max(board.depth_for_row(i) for i in range(left, right))
-    return max(piece_height - max_depth, 0)
+
+    return max(piece_height - max_depth, -piece_height)
 
   def __repr__(self):
     return "<%s left_offset=%d piece=%s>" % (self.__class__.__name__, self.left_offset, repr(self.piece))

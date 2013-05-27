@@ -56,7 +56,7 @@ class Variation(object):
 
   @property
   def priority_score(self):
-    return (self.number_of_actions, self.utility)
+    return (self.number_of_actions, -self.utility)
 
 
   @property
