@@ -212,7 +212,6 @@ class MinimalSearchAgent(Agent):
     tracker        = Tracker(history, cutoff_depth)
     root_node      = self.node_class(root_variation, None, tracker, target_height, root_node=True)
     result         = AStar(root_node).search()
-    print(tracker.details())
     if result:
       return result.variation()
     else:

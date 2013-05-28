@@ -74,7 +74,7 @@
   \subsection{General Structure}
 
   The agent program for trix was implemented in Python - a language chosen primarily for it's quick feedback / testing flow. The structure
-  itself follows that in general of the rough agent design as outlined in \cite{textbook1} - An Agent class responsible for making decisions
+  itself follows that in general of the rough agent design as outlined in AIMA - An Agent class responsible for making decisions
   and classes for the Environment and Percept.
 
   With this in mind, the key classes when exploring the code are:
@@ -233,6 +233,8 @@
   \addcontentsline{toc}{section}{References}
   \section*{References}
     \begin{itemize}
-      \item Example Reference Here
+      \item Russell, S \& Norvig, P 2010, \textit{Artificial Intelligence - A Modern Approach,} 3rd edn. Pearson Education, New Jersey.
+      \item \textit{aima-python}, 2011. Available from: \verb+<https://code.google.com/p/aima-python/>+. [18th of May, 2013].
+      \item \textit{Playing forever - tetrisconcept}, 2009. Available from: \verb+<http://tetrisconcept.net/wiki/Playing_forever>+. [2nd of May, 2013].
     \end{itemize}
 \end{document}
